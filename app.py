@@ -37,3 +37,4 @@ def signUp():
 # check if the executed file is the main program and run the app
 if __name__ == "__main__":
     app.run()
+
