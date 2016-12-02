@@ -4,9 +4,9 @@ from flask import render_template, json, request
 
 # define the basic route and corresponding request handler
 @app.route("/")
-@app.route("/main")
+@app.route("/home")
 def main():
-    return render_template('index.html')
+    return render_template('index.jinja.html')
 
 @app.route('/testdb')
 def testdb():
@@ -18,8 +18,11 @@ def testdb():
 
 @app.route('/showSignUp')
 def showSignUp():
-    return render_template('signup.html')
+    return render_template('signup.jinja.html')
 
+@app.route('/showSignIn')
+def showSignIn():
+    return render_template('signin.jinja.html')
 
 # routing for user signup
 @app.route('/signUp', methods=['POST'])
