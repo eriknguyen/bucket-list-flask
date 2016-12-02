@@ -1,13 +1,19 @@
-from flask import Flask, render_template, json, request
-from flask_sqlalchemy import SQLAlchemy
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:root@localhost/bucketlist'
-db = SQLAlchemy(app)
+from bucket_list import app
+from bucket_list.models import db, User
+from flask import render_template, json, request
 
 # define the basic route and corresponding request handler
 @app.route("/")
+@app.route("/main")
 def main():
     return render_template('index.html')
+
+@app.route('/testdb')
+def testdb():
+    if db.session.query("1").from_statement("SELECT 1").all():
+        return "DB workds"
+    else:
+        return "DB not connected"
 
 
 @app.route('/showSignUp')
@@ -24,6 +30,10 @@ def signUp():
     _email = request.form['inputEmail']
     _password = request.form['inputPassword']
 
+    new_user = User(_name, _email, _password)
+    db.session.add(new_user)
+    db.session.commit()
+
     # validate received values
     if _name and _email and _password:
         return json.dumps({
@@ -34,7 +44,6 @@ def signUp():
             'html': '<span>Enter the required fields !!</span>'
         })
 
-# check if the executed file is the main program and run the app
+# check if the executed file is the main program and run the bucket_list
 if __name__ == "__main__":
     app.run()
-
