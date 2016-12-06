@@ -5,18 +5,21 @@ db = SQLAlchemy()
 
 class User(db.Model):
     __tablename__ = 'user'
-    user_id = db.Column(db.Integer, primary_key=True)
-    user_name = db.Column(db.String(45))
-    user_username = db.Column(db.String(45))
-    user_password = db.Column(db.String(100))
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(45))
+    email = db.Column(db.String(45))
+    password = db.Column(db.String(200))
 
     def __init__(self, name, username, password):
-        self.user_name = name
-        self.user_username = username
+        self.name = name
+        self.email = username
         self.set_password(password)
 
-    def set_password(self, password):
-        self.user_password = generate_password_hash(password)
+    def set_password(self, _password):
+        self.password = generate_password_hash(_password)
 
-    def check_password(self, password):
-        return check_password_hash(self.user_password, password)
+    def check_password(self, _password):
+        return check_password_hash(self.password, _password)
+
+    def print_user(self):
+        print ("User: ", self.name, " - ", self.email)

@@ -1,6 +1,7 @@
 from bucket_list import app
 from bucket_list.models import db, User
-from flask import render_template, json, request
+from flask import render_template, json, request, redirect, url_for
+from werkzeug import generate_password_hash, check_password_hash
 
 # define the basic route and corresponding request handler
 @app.route("/")
@@ -18,7 +19,7 @@ def testdb():
 
 @app.route('/showSignUp')
 def showSignUp():
-    return render_template('signup.jinja.html')
+    return render_template('signup.jinja.html', error=False)
 
 @app.route('/showSignIn')
 def showSignIn():
@@ -33,19 +34,38 @@ def signUp():
     _email = request.form['inputEmail']
     _password = request.form['inputPassword']
 
-    new_user = User(_name, _email, _password)
-    db.session.add(new_user)
-    db.session.commit()
-
-    # validate received values
-    if _name and _email and _password:
-        return json.dumps({
-            'html': '<span>All fields good !!</span>'
-        })
+    check_user = User.query.filter_by(email=_email).all()
+    if (len(check_user)>0):
+        return redirect(url_for('showSignUp', error=True))
     else:
-        return json.dumps({
-            'html': '<span>Enter the required fields !!</span>'
-        })
+        new_user = User(_name, _email, _password)
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('main'))
+
+
+@app.route('/validateLogin', methods=['POST'])
+def validateLogin():
+    try:
+        _username = request.form['inputEmail']
+        _password = request.form['inputPassword']
+
+        check_user = User.query.filter_by(email=_username).first()
+        if check_user:
+            if check_user.check_password(_password):
+                return redirect('/userHome')
+            else:
+                return render_template('error.jinja.html', error='Wrong Email address or password')
+        else:
+            return render_template('error.jinja.html', error = 'Wrong email address or password')
+
+    except Exception as e:
+        return render_template('error.jinja.html', error = str(e))
+
+
+@app.route('/userHome')
+def userHome():
+    return render_template('userHome.jinja.html')
 
 # check if the executed file is the main program and run the bucket_list
 if __name__ == "__main__":
