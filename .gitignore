@@ -1,2 +1,15 @@
-.idea
+.DS_Store
+node_modules
+.tmp
+.sass-cache
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+.idea/
+.vscode/
+
+!*.obj
 venv
