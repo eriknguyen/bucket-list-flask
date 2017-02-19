@@ -14,3 +14,12 @@ BEGIN
 	END IF;
 END$$
 DELIMITER ;
+
+-- stored procedure to validate user
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin` (
+	IN p_email VARCHAR(50))
+BEGIN
+	select * from user where email = p_email;
+END$$
+DELIMITER;

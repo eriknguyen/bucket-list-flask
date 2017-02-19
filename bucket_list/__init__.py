@@ -18,9 +18,6 @@ app.config['MYSQL_DATABASE_PASSWORD'] = 'root'
 mysql = MySQL()
 mysql.init_app(app)
 
-conn = mysql.connect()
-cursor = conn.cursor()
-
 # use with sqlalchemy and pymysql
 # from bucket_list.models import db
 # db.init_app(app)

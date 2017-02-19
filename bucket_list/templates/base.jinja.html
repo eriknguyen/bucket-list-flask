@@ -15,10 +15,15 @@
                 <ul class="nav nav-pills pull-right">
                     <li role="presentation" class="active"><a href="/home">Home</a>
                     </li>
+                    {% if 'user' in session %}
+                        <li role="presentation"><a href="/logout">Log Out</a>
+                    </li>
+                    {% else %}
                     <li role="presentation"><a href="showSignIn">Sign In</a>
                     </li>
                     <li role="presentation"><a href="showSignUp">Sign Up</a>
                     </li>
+                    {% endif %}
                 </ul>
             </nav>
             <h3 class="text-muted">Python Flask App</h3>

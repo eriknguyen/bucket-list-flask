@@ -1,6 +1,6 @@
 from bucket_list import *
 from bucket_list.models import db, User
-from flask import render_template, json, request, redirect, url_for
+from flask import render_template, json, request, redirect, url_for, session
 from werkzeug import generate_password_hash, check_password_hash
 
 # define the basic route and corresponding request handler
@@ -31,6 +31,7 @@ def showSignIn():
 
 
 # routing for user signup
+
 # Option 1: using user model & sqlalchemy
 # @app.route('/signUp', methods=['POST'])
 # def signUp():
@@ -56,13 +57,14 @@ def showSignIn():
 @app.route('/signUp', methods=['POST'])
 def signUp():
     # function for creating user
-    # read posted values from UI
     _name = request.form['inputName']
     _email = request.form['inputEmail']
     _password = request.form['inputPassword']
     _hashed_password = generate_password_hash(_password)
     print("formdata = ", _name, _email, _password, _hashed_password)
 
+    conn = mysql.connect()
+    cursor = conn.cursor()
     cursor.callproc('sp_createUser', (_name, _email, _hashed_password))
 
     # if stored procedure is executed successfully, then commit the change and
@@ -78,28 +80,74 @@ def signUp():
         })
 
 
+# to validate user login
+
+# 1. using sqlalchemy and User model
+# @app.route('/validateLogin', methods=['POST'])
+# def validateLogin():
+#     try:
+#         _username = request.form['inputEmail']
+#         _password = request.form['inputPassword']
+
+#         check_user = User.query.filter_by(email=_username).first()
+#         if check_user:
+#             if check_user.check_password(_password):
+#                 return redirect('/userHome')
+#             else:
+#                 return render_template('error.jinja.html', error='Wrong Email address or password')
+#         else:
+#             return render_template('error.jinja.html', error='Wrong email address or password')
+
+#     except Exception as e:
+#         return render_template('error.jinja.html', error=str(e))
+
+# 2. using flask-mysql and stored procedure
 @app.route('/validateLogin', methods=['POST'])
 def validateLogin():
     try:
-        _username = request.form['inputEmail']
+        _email = request.form['inputEmail']
         _password = request.form['inputPassword']
 
-        check_user = User.query.filter_by(email=_username).first()
-        if check_user:
-            if check_user.check_password(_password):
+        # connect to mysql
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('sp_validateLogin', (_email, ))
+        data = cursor.fetchall()
+
+        if len(data) > 0:
+            for item in data:
+                print(item)
+            if check_password_hash(str(data[0][3]), _password):
+                session['user'] = data[0][0]
                 return redirect('/userHome')
             else:
-                return render_template('error.jinja.html', error='Wrong Email address or password')
+                print("Error: ", "Password does not match")
+                return render_template('error.jinja.html', error = 'Wrong email address')
         else:
-            return render_template('error.jinja.html', error='Wrong email address or password')
+            print("Error: ", "len(data) = 0")
+            return render_template('error.jinja.html', error = 'Wrong email address')
 
     except Exception as e:
+        print("Error = ", e)
         return render_template('error.jinja.html', error=str(e))
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @app.route('/userHome')
 def userHome():
-    return render_template('userHome.jinja.html')
+    if session.get('user'):
+        return render_template('userHome.jinja.html')
+    else:
+        return render_template('error.jinja.html', error = 'Unauthorized Access')
+
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect('/')
+
 
 # check if the executed file is the main program and run the bucket_list
 if __name__ == "__main__":
