@@ -1,4 +1,4 @@
-from bucket_list import app
+from bucket_list import *
 from bucket_list.models import db, User
 from flask import render_template, json, request, redirect, url_for
 from werkzeug import generate_password_hash, check_password_hash
@@ -29,9 +29,30 @@ def showSignUp():
 def showSignIn():
     return render_template('signin.jinja.html')
 
+
 # routing for user signup
+# Option 1: using user model & sqlalchemy
+# @app.route('/signUp', methods=['POST'])
+# def signUp():
+#     # function for creating user
+#     # read posted values from UI
+#     _name = request.form['inputName']
+#     _email = request.form['inputEmail']
+#     _password = request.form['inputPassword']
+#     print("formdata = ", _name, _email, _password)
 
+#     check_user = User.query.filter_by(email=_email).all()
+#     print("check_user = ", check_user)
+#     if (len(check_user) > 0):
+#         print("there is some user inside")
+#         return redirect(url_for('showSignUp', error=True))
+#     else:
+#         new_user = User(_name, _email, _password)
+#         db.session.add(new_user)
+#         db.session.commit()
+#         return redirect(url_for('main'))
 
+# Option 2: using stored procedure and flask-mysql only
 @app.route('/signUp', methods=['POST'])
 def signUp():
     # function for creating user
@@ -39,18 +60,22 @@ def signUp():
     _name = request.form['inputName']
     _email = request.form['inputEmail']
     _password = request.form['inputPassword']
-    print("formdata = ", _name, _email, _password)
+    _hashed_password = generate_password_hash(_password)
+    print("formdata = ", _name, _email, _password, _hashed_password)
 
-    check_user = User.query.filter_by(email=_email).all()
-    print("check_user = ", check_user)
-    if (len(check_user) > 0):
-        print("there is some user inside")
-        return redirect(url_for('showSignUp', error=True))
+    cursor.callproc('sp_createUser', (_name, _email, _hashed_password))
+
+    # if stored procedure is executed successfully, then commit the change and
+    # return success message
+    data = cursor.fetchall()
+    if len(data) is 0:
+        conn.commit()
+        return json.dumps({'status': 'OK'})
     else:
-        new_user = User(_name, _email, _password)
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('main'))
+        return json.dumps({
+            'status': 'fail',
+            'error': str(data[0])
+        })
 
 
 @app.route('/validateLogin', methods=['POST'])
