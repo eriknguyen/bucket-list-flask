@@ -1,0 +1,31 @@
+{% extends "base.jinja.html" %} {% block header_script %} {% endblock %} {% block content %}
+<section>
+    <form class="form-horizontal" method="post" action="/addWish">
+        <fieldset>
+            <!-- Form Name -->
+            <legend>Create Your Wish</legend>
+            <!-- Text input-->
+            <div class="form-group">
+                <label class="col-md-4 control-label" for="txtTitle">Title</label>
+                <div class="col-md-4">
+                    <input id="txtTitle" name="inputTitle" type="text" placeholder="placeholder" class="form-control input-md">
+                </div>
+            </div>
+            <!-- Textarea -->
+            <div class="form-group">
+                <label class="col-md-4 control-label" for="txtPost">Post</label>
+                <div class="col-md-4">
+                    <textarea class="form-control" id="txtPost" name="inputDescription"></textarea>
+                </div>
+            </div>
+            <!-- Button -->
+            <div class="form-group">
+                <label class="col-md-4 control-label" for="singlebutton"></label>
+                <div class="col-md-4">
+                    <input id="singlebutton" name="singlebutton" class="btn btn-primary" type="submit" value="Publish" />
+                </div>
+            </div>
+        </fieldset>
+    </form>
+</section>
+{% endblock %}

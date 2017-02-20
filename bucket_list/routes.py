@@ -149,6 +149,72 @@ def logout():
     return redirect('/')
 
 
+@app.route('/showAddWish')
+def show_add_wish():
+    return render_template('addWish.jinja.html')
+
+
+@app.route('/addWish', methods=['POST'])
+def add_wish():
+    try:
+        if 'user' in session:
+            print("user is in session")
+            _title = request.form['inputTitle']
+            _desc = request.form['inputDescription']
+            _user = session.get('user')
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_addWish', (_title, _desc, _user))
+            data = cursor.fetchall()
+
+            if len(data) is 0:
+                conn.commit()
+                return redirect('/userHome')
+            else:
+                return render_template('error.jinja.html', error = 'An error occured!')
+        else:
+            return render_template('error.jinja.html', error = 'Unauthorized user')
+    except Exception as e:
+        return render_template('error.jinja.html', error = str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/getWish')
+def get_wish():
+    try:
+        if 'user' in session:
+            _user = session.get('user')
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_getWishByUser', (_user, ))
+            wishes = cursor.fetchall()
+            print("wishes = ", wishes, len(wishes))
+
+            if len(wishes) > 0:
+                wishes_dict = []
+                for wish in wishes:
+                    wishes_dict.append({
+                        'id': wish[0],
+                        'title': wish[1],
+                        'desc': wish[2],
+                        'created': wish[4]
+                        })
+                return json.dumps(wishes_dict)
+            else:
+                return render_template('error.jinja.html', error = 'User has no wish at all')
+        else:
+            return render_template('error.jinja.html', error = 'Unauthorized user')
+    except Exception as e:
+        return render_template('error.jinja.html', error = str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
 # check if the executed file is the main program and run the bucket_list
-if __name__ == "__main__":
-    app.run()
+# if __name__ == "__main__":
+#     app.run()

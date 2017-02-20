@@ -5,6 +5,7 @@
     <title>Python Flask Bucket List App</title>
     <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
+    <script type="text/javascript" src="../static/js/jquery-3.1.0.min.js"></script>
     {% block header_script %} {% endblock %}
 </head>
 
@@ -16,6 +17,7 @@
                     <li role="presentation" class="active"><a href="/home">Home</a>
                     </li>
                     {% if 'user' in session %}
+                        <li role="presentation"><a href="/showAddWish" title="Add Wish">Add Wish</a></li>
                         <li role="presentation"><a href="/logout">Log Out</a>
                     </li>
                     {% else %}
@@ -31,11 +33,13 @@
 
         {% block content %} {% endblock %}
 
-
         <footer class="footer">
             <p>&copy; Company 2015</p>
         </footer>
     </div>
+
+    {% block footer_script %}
+    {% endblock %}
 </body>
 
 </html>
