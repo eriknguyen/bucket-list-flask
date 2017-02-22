@@ -192,7 +192,6 @@ def get_wish():
             cursor = conn.cursor()
             cursor.callproc('sp_getWishByUser', (_user, ))
             wishes = cursor.fetchall()
-            print("wishes = ", wishes, len(wishes))
 
             if len(wishes) > 0:
                 wishes_dict = []
@@ -210,6 +209,65 @@ def get_wish():
             return render_template('error.jinja.html', error = 'Unauthorized user')
     except Exception as e:
         return render_template('error.jinja.html', error = str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/getWishById', methods=['POST'])
+def get_wish_by_id():
+    try:
+        if 'user' in session:
+            _user = session.get('user')
+            _id = request.form['id']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_getWishById', (_id, _user))
+            result = cursor.fetchall()[0]
+            print(result)
+
+            wish = []
+            wish.append({
+                'id': result[0],
+                'title': result[1],
+                'desc': result[2],
+                'created': result[4]
+                })
+
+            return json.dumps(wish)
+        else:
+            return render_template('error.jinja.html', error='Unauthorized user')
+    except Exception as e:
+        return render_template('error.jinja.html', error = str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/updateWish', methods=['POST'])
+def update_wish():
+    try:
+        if 'user' in session:
+            _user = session.get('user')
+            _id = request.form['id']
+            _title = request.form['title']
+            _desc = request.form['description']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_updateWish', (_id, _title, _desc, _user))
+            data = cursor.fetchall()
+
+            if len(data) is 0:
+                conn.commit()
+                return json.dumps({'status': 'OK'})
+            else:
+                return json.dumps({'status': 'ERROR'})
+        else:
+            return render_template('error.jinja.html', error='Unauthorized user')
+    except Exception as e:
+        return render_template('error.jinja.html', error = 'Unauthorized access')
     finally:
         cursor.close()
         conn.close()

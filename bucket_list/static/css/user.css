@@ -1,0 +1,16 @@
+.trash {
+    color: rgb(209, 91, 71);
+}
+
+.panel-body .checkbox {
+    display: inline-block;
+    margin: 0px;
+}
+
+.list-group {
+    margin-bottom: 0px;
+}
+
+.modal-backdrop {
+	z-index: 0;
+}

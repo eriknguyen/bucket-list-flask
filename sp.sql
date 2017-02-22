@@ -60,4 +60,28 @@ END$$
 
 DELIMITER ;
 
+-- stored procedure to get wish by id and user_id
+DELIMITER $$
+CREATE DEFINER='root'@'localhost' PROCEDURE `sp_getWishById` (
+	IN p_id bigint,
+	IN p_user_id bigint
+)
+BEGIN
+	select * from wish where id=p_id and user_id=p_user_id;
+END$$
+DELIMITER ;
 
+-- update wish Detail
+DELIMITER $$
+CREATE DEFINER='root'@'localhost' PROCEDURE sp_updateWish (
+	IN p_id bigint,
+	IN p_title varchar(50),
+	IN p_desc varchar(1000),
+	IN p_user_id bigint
+)
+BEGIN
+	update wish
+	set title=p_title, `desc` = p_desc
+	where id=p_id and user_id=p_user_id;
+END$$
+DELIMITER ;

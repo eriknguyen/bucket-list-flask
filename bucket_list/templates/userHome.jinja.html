@@ -1,38 +1,154 @@
-{% extends 'base.jinja.html' %} {% block header_script %}
+{% extends 'base.jinja.html' %} 
+
+{% block header_script %}
 <link href="../static/css/signup.css" rel="stylesheet">
+<link href="../static/css/user.css" rel="stylesheet">
+<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.tmpl.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+{% endblock %} 
+
+{% block footer_script %}
+<script id="listTemplate" type="text/x-jQuery-tmpl">
+                    <li class="list-group-item">
+                        <div class="checkbox">
+                            <label for="">${title}</label>
+                        </div>
+                        <div class="pull-right action-buttons">
+                            <a data-id=${id} onclick="edit(this)">
+                                <span class="glyphicon glyphicon-pencil"></span>
+                            </a>
+                        </div>
+                    </li>
+                </script>
+                
 <script>
 $(function() {
+    getWishes();
+});
+
+function getWishes() {
     $.ajax({
         url: '/getWish',
         type: 'GET',
         success: function(res) {
             // console.log(res);
-            var div = $('<div>')
-                .attr('class', 'list-group')
-                .append($('<a>')
-                    .attr('class', 'list-group-item active')
-                    .append($('<h4>')
-                        .attr('class', 'list-group-item-heading'),
-                        $('<p>')
-                        .attr('class', 'list-group-item-text')));
-            var wishObj = JSON.parse(res);
-            var wish = '';
+            // var div = $('<div>')
+            //     .attr('class', 'list-group')
+            //     .append($('<a>')
+            //         .attr('class', 'list-group-item active')
+            //         .append($('<h4>')
+            //             .attr('class', 'list-group-item-heading'),
+            //             $('<p>')
+            //             .attr('class', 'list-group-item-text')));
+            // var wishObj = JSON.parse(res);
+            // var wish = '';
 
-            $.each(wishObj, function(index, value) {
-                wish = $(div).clone();
-                $(wish).find('h4').text(value.title);
-                $(wish).find('p').text(value.desc);
-                $('.jumbotron').append(wish);
-            });
+            // $.each(wishObj, function(index, value) {
+            //     wish = $(div).clone();
+            //     $(wish).find('h4').text(value.title);
+            //     $(wish).find('p').text(value.desc);
+            //     $('.jumbotron').append(wish);
+            // });
+
+            /* updated success callback using jQuery template */
+            var wishObj = JSON.parse(res);
+            $('#ulist').empty();
+            $('#listTemplate').tmpl(wishObj).appendTo('#ulist');
         },
         error: function(error) {
             console.log(error);
         }
     });
+}
+
+function edit(elm) {
+    $.ajax({
+        url: '/getWishById',
+        data: {
+            id: $(elm).data('id')
+        },
+        type: 'POST',
+        success: function (res) {
+            console.log(res);
+            var data = JSON.parse(res)[0];
+
+            $('#editTitle').val(data.title);
+            $('#editDescription').val(data.desc);
+
+            $('#editModal').modal();
+            localStorage.setItem('editId', $(elm).data('id'));
+        }, 
+        error: function (error) {
+            console.log(error);
+        }
+    });
+}
+
+$('#btnUpdate').click(function() {
+    $.ajax({
+        url: '/updateWish',
+        type: 'POST',
+        data: {
+            title: $('#editTitle').val(),
+            description: $('#editDescription').val(),
+            id: localStorage.getItem('editId')
+        },
+        success: function(res) {
+            console.log(res);
+            $('#editModal').modal('hide');
+
+            getWishes();
+        },
+        error: function(err) {
+            console.log(err);
+        }
+    });
 });
+
 </script>
-{% endblock %} {% block footer_script %} {% endblock %} {% block content %}
-<div class="jumbotron">
+{% endblock %} 
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel-body">
+            <ul id="ulist" class="list-group">
+            
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="editModalLabel">Update Wish</h4>
+            </div>
+            <div class="modal-body">
+                <form role="form">
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">Title:</label>
+                        <input type="text" class="form-control" id="editTitle">
+                    </div>
+                    <div class="form-group">
+                        <label for="message-text" class="control-label">Description:</label>
+                        <textarea class="form-control" id="editDescription"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" id="btnUpdate" class="btn btn-primary">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# <div class="jumbotron">
     <!-- <h1>Welcome Home !!</h1>
     <div class="list-group">
         <a href="#" class="list-group-item active">
@@ -40,5 +156,5 @@ $(function() {
             <p class="list-group-item-text">Wish Description</p>
         </a>
     </div> -->
-</div>
+</div> #}
 {% endblock %}
