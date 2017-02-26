@@ -1,31 +1,3 @@
-
--- create a stored procedure to create a new user in user table
-DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_createUser`(
-	IN p_name VARCHAR(50),
-	IN p_email VARCHAR(50),
-	IN p_password VARCHAR(200)
-)
-BEGIN
-if ( select exists (select 1 from user where email = p_email) ) THEN
-select 'Username Exists !!';
-ELSE
-insert into user(name, email, password) values (p_name, p_email, p_password);
-	END IF;
-	END$$
-	DELIMITER ;
-
-
--- stored procedure to validate user
-DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_validateLogin` (
-	IN p_email VARCHAR(50))
-BEGIN
-select * from user where email = p_email;
-END$$
-DELIMITER ;
-
-
 -- stored procedure to add item to wish table
 USE bucketlist;
 DROP procedure IF EXISTS bucketlist.sp_addWish;
@@ -67,7 +39,7 @@ CREATE DEFINER='root'@'localhost' PROCEDURE `sp_getWishById` (
 	IN p_user_id bigint
 )
 BEGIN
-	select * from wish where id=p_id and user_id=p_user_id;
+select * from wish where id=p_id and user_id=p_user_id;
 END$$
 DELIMITER ;
 
@@ -80,8 +52,21 @@ CREATE DEFINER='root'@'localhost' PROCEDURE sp_updateWish (
 	IN p_user_id bigint
 )
 BEGIN
-	update wish
+update wish
 	set title=p_title, `desc` = p_desc
 	where id=p_id and user_id=p_user_id;
+	END$$
+	DELIMITER ;
+
+-- delete an item
+DELIMITER $$
+USE `bucketlist`$$
+CREATE PROCEDURE `sp_deleteWish` (
+	IN p_id bigint,
+	IN p_user_id bigint
+)
+BEGIN
+delete from wish where id = p_id and user_id = p_user_id;
 END$$
+
 DELIMITER ;

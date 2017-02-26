@@ -273,6 +273,32 @@ def update_wish():
         conn.close()
 
 
+@app.route('/deleteWish', methods=['POST'])
+def delete_wish():
+    try:
+        if 'user' in session:
+            _user = session.get('user')
+            _id = request.form['id']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('sp_deleteWish', (_id, _user))
+            result = cursor.fetchall()
+
+            if len(result) is 0:
+                conn.commit()
+                return json.dumps({'status': 'OK'})
+            else:
+                return json.dumps({'status': 'An error occured'})
+        else:
+            return render_template('error.jinja.html', error='Unauthorized access')
+    except Exception as e:
+        return json.dumps({'status': str(e)})
+    finally:
+        cursor.close()
+        conn.close()
+
+
 # check if the executed file is the main program and run the bucket_list
 # if __name__ == "__main__":
 #     app.run()
