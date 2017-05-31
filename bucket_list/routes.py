@@ -3,9 +3,12 @@ from bucket_list.models import db, User
 from flask import render_template, json, request, redirect, url_for, session
 from werkzeug import generate_password_hash, check_password_hash
 
+
+# default settings
+page_lim = 2
+
+
 # define the basic route and corresponding request handler
-
-
 @app.route("/")
 @app.route("/home")
 def main():
@@ -182,16 +185,25 @@ def add_wish():
         conn.close()
 
 
-@app.route('/getWish')
+@app.route('/getWish', methods=['POST'])
 def get_wish():
     try:
         if 'user' in session:
             _user = session.get('user')
+            _limit = page_lim
+            _offset = request.form['offset'] if ('offset' in request.form) else 0
+            _total_records = 0
 
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.callproc('sp_getWishByUser', (_user, ))
+            cursor.callproc('sp_getWishByUser', (_user, _limit, _offset, _total_records))
             wishes = cursor.fetchall()
+
+            cursor.close()
+
+            cursor = conn.cursor()
+            cursor.execute('SELECT @_sp_GetWishByUser_3')
+            outParam = cursor.fetchall()
 
             if len(wishes) > 0:
                 wishes_dict = []
@@ -202,6 +214,7 @@ def get_wish():
                         'desc': wish[2],
                         'created': wish[4]
                         })
+                # TODO add total count to response
                 return json.dumps(wishes_dict)
             else:
                 return render_template('error.jinja.html', error = 'User has no wish at all')
